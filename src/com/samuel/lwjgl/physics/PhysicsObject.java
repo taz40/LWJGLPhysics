@@ -1,8 +1,5 @@
 package com.samuel.lwjgl.physics;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glVertex2f;
+import static org.lwjgl.opengl.GL11.*;
 
 public class PhysicsObject {
 	
@@ -22,6 +19,7 @@ public class PhysicsObject {
 	}
 	
 	public void render(){
+		glColor3f(1.0f,0f, 0f);
 		glBegin(GL_QUADS);
      		glVertex2f(x,y);
      		glVertex2f(x+width, y);
@@ -60,9 +58,9 @@ public class PhysicsObject {
 			if(y <= 0){
 				y = 0;
 			}
-			//if(x >= 800-width){
-				//x = 800-width;
-			//}
+			if(x >= 800-width){
+				x = 800-width;
+			}
 			
 			lastUpdate = System.nanoTime();
 			forceTimer += deltaTime;
