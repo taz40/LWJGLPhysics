@@ -5,20 +5,23 @@ import static org.lwjgl.opengl.GL11.*;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 
+import com.samuel.lwjgl.physics.Input.KeyListener;
 import com.samuel.lwjgl.physics.graphics.Window;
  
-public class Main {
+public class Main implements Runnable{
  
     // We need to strongly reference callback instances.
     PhysicsObject o = new PhysicsObject(100,100,10,10);
     
     int ups = 60;
     long updateTimer = 0;
-    long updateCooldown = (1/ups)*1000000000;
+    long updateCooldown = (long) (1e+9/ups);
+    long lastTime = 0;
     
     Window window;
+    public Thread updateThread;
  
-    public void run() {
+    public void start() {
         
         try {
             init();
@@ -26,6 +29,12 @@ public class Main {
  
             // Release window and window callbacks
             window.Destroy();
+            try {
+				updateThread.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         } finally {
             // Terminate GLFW and release the GLFWerrorfun
             glfwTerminate();
@@ -42,9 +51,14 @@ public class Main {
         
         window = new Window(800,600,"LWJGL Game");
         
+        window.vSync(1);
+        
     	System.out.println("GL_VENDOR: " + glGetString(GL_VENDOR));
 		System.out.println("GL_RENDERER: " + glGetString(GL_RENDERER));
 		System.out.println("GL_VERSION: " + glGetString(GL_VERSION));
+		
+        updateThread = new Thread(this);
+        updateThread.start();
         
     }
  
@@ -67,21 +81,44 @@ public class Main {
  
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
+        
         while ( glfwWindowShouldClose(window.getWindowID()) == GL_FALSE ) {
         	
         	render();
-        	if(updateTimer <= 0){
-        		update();
-        		updateTimer = updateCooldown;
-        	}else{
-        		updateTimer -= System.nanoTime();
-        	}
             
         }
         
     }
     
+    public void run(){
+    	lastTime = System.nanoTime();
+    	while ( glfwWindowShouldClose(window.getWindowID()) == GL_FALSE ) {
+	    	if(updateTimer <= 0){
+	    		update();
+	    		updateTimer = updateCooldown;
+	    		//lastTime = System.nanoTime();
+	    	}else{
+	    		long now = System.nanoTime();
+	    		updateTimer -= (now - lastTime);
+	    		lastTime = now;
+	    		if(updateTimer > 0){
+		    		try {
+						Thread.sleep((long) (updateTimer*1e-6));
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+	    		}
+	    	}
+    	}
+    }
+    
     public void update(){
+    	window.update();
+    	
+	    if ( KeyListener.getKey(GLFW_KEY_ESCAPE) )
+	    	glfwSetWindowShouldClose(window.getWindowID(), GL_TRUE); // We will detect this in our rendering loop
+	    
     	o.update();
     }
     
@@ -94,7 +131,7 @@ public class Main {
     }
  
     public static void main(String[] args) {
-        new Main().run();
+        new Main().start();
     }
  
 }

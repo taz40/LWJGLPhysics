@@ -10,6 +10,9 @@ public class PhysicsObject {
 	float vy=0;
 	float vx=0;
 	long lastUpdate;
+	float timeModifier = 1;
+	float ForceY = -9.8f*mass;
+	float ForceX = 0;
 	
 	public PhysicsObject(float x, float y, float width, float height){
 		this.x = x;
@@ -28,38 +31,42 @@ public class PhysicsObject {
      	glEnd();
 	}
 	
+	public void addForce(float amount, float angle){
+		float angleRaid = (float) Math.toRadians(angle);
+		ForceX += amount*-Math.cos(angleRaid);
+		ForceY += amount*-Math.sin(angleRaid);
+	}
+	
 	public void update(){
 		if(lastUpdate == 0){
 			lastUpdate = System.nanoTime();
 		}else{
-			float deltaTime = ((float)System.nanoTime() - (float)(lastUpdate))/1000000000f;
-			float gravityForce = -9.8f * mass;
-			float netForce = gravityForce;
-			if(forceTimer <= .1f){
-				netForce += 700;
-			}
-			float a = netForce/mass;
+			float deltaTime = ((long)System.nanoTime() - (lastUpdate))/1000000000f;
+			deltaTime *= timeModifier;
+			float a = ForceY/mass;
 			float newY = ((a/2)*deltaTime*deltaTime)+(vy*deltaTime)+(y/100);
 			float newV = (a*deltaTime)+vy;
 			y = (newY*100);
 			vy = newV;
-			
-			netForce = 0;
+			ForceY = 0;
 			if(forceTimer >= 0.5f && forceTimer <= 0.7f){
-				netForce += 500;
+				ForceX += 500;
 				
 			}
-			a = netForce/mass;
+			a = ForceX/mass;
 			float newX = ((a/2)*deltaTime*deltaTime)+(vx*deltaTime)+(x/100);
 			newV = (a*deltaTime)+vx;
 			x = (newX*100);
 			vx = newV;
+			ForceX = 0;
 			
 			if(y <= 0){
 				y = 0;
+				vy = 0;
 			}
 			if(x >= 800-width){
 				x = 800-width;
+				vx = 0;
 			}
 			
 			lastUpdate = System.nanoTime();

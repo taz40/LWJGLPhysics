@@ -18,6 +18,12 @@ public class Window {
     int width, height;
     String title;
     private GLFWKeyCallback   keyCallback = new KeyListener();
+    public int fps;
+    public int ups;
+    int frames;
+    int updates;
+    long timer = 0;
+    long lasttime = 0;
     
     public Window(int width, int height, String title){
     	this.width = width;
@@ -55,8 +61,16 @@ public class Window {
         glfwShowWindow(window);
         
         GL.createCapabilities();
+    	lasttime = System.nanoTime();
     	
-    	
+    }
+    
+    public void setupForThread(){
+    	glfwMakeContextCurrent(window);
+    }
+    
+    public void vSync(int vSync){
+    	glfwSwapInterval(vSync);
     }
     
     public void Destroy(){
@@ -73,6 +87,7 @@ public class Window {
     }
     
     public void render(){
+    	frames++;
         glfwSwapBuffers(window); // swap the color buffers
 
         // Poll for window events. The key callback above will only be
@@ -80,4 +95,17 @@ public class Window {
         glfwPollEvents();
     }
 	
+    public void update(){
+    	long now = System.nanoTime();
+    	timer += now - lasttime;
+    	lasttime = now;
+    	updates++;
+    	if(timer >= 1e+9){
+    		timer = 0;
+    		fps = frames;
+    		frames = 0;
+    		ups = updates;
+    		updates = 0;
+    	}
+    }
 }
