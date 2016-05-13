@@ -43,6 +43,10 @@ public class PhysicsObject {
 		}else{
 			float deltaTime = ((long)System.nanoTime() - (lastUpdate))/1000000000f;
 			deltaTime *= timeModifier;
+			ForceY -= 9.8f*mass;
+			if(forceTimer <= 0.1f){
+				addForce(700, 270);
+			}
 			float a = ForceY/mass;
 			float newY = ((a/2)*deltaTime*deltaTime)+(vy*deltaTime)+(y/100);
 			float newV = (a*deltaTime)+vy;
@@ -50,7 +54,7 @@ public class PhysicsObject {
 			vy = newV;
 			ForceY = 0;
 			if(forceTimer >= 0.5f && forceTimer <= 0.7f){
-				ForceX += 500;
+				addForce(500, 180);
 				
 			}
 			a = ForceX/mass;
